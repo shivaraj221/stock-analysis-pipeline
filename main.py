@@ -1,30 +1,33 @@
-# main.py
 import os
 import json
-from crewai import Crew, Process
-from dotenv import load_dotenv
+import time
+from datetime import datetime
 
-load_dotenv()
+# CrewAI imports
+from crewai import Crew, Process
 
 # Agents
 from agents.toolchain_agent import toolchain_agent
 from agents.json_cleaner_agent import json_cleaner_agent
 from agents.news_agent import news_agent
-from agents.notifier_agent import notifier_agent
 
 # Tasks
 from tasks.toolchain_task import toolchain_task
 from tasks.json_cleaner_task import json_cleaner_task
 from tasks.news_task import news_task
-from tasks.notifier_task import notify_task
 
-DATA_DIR = "data"
-NEWS_DIR = "data/news"
+# Discord notifier
+from tools.notifier import DiscordNotifierTool
 
-def cleanup_files():
-    print("\n🧹 Cleaning old JSON files...")
+# -------------------------
+# CLEANUP FUNCTION
+# -------------------------
+def cleanup_all_pipeline_files():
+    """Delete all JSON pipeline files after run."""
+    BASE = "data"
+    NEWS_DIR = os.path.join(BASE, "news")
 
-    to_delete = [
+    general_files = [
         "classified_stocks.json",
         "clean_classified_stocks.json",
         "new_classified_stocks.json",
@@ -32,54 +35,86 @@ def cleanup_files():
         "top_gainers.json"
     ]
 
-    # Delete pipeline JSON files
-    for file in to_delete:
-        path = os.path.join(DATA_DIR, file)
-        if os.path.exists(path):
-            os.remove(path)
-            print("🗑️ Deleted:", file)
+    print("\n🧹 Cleaning pipeline files...")
 
-    # Delete all news files
+    # delete general files
+    for file in general_files:
+        path = os.path.join(BASE, file)
+        if os.path.exists(path):
+            try:
+                os.remove(path)
+                print(f"🗑️ Deleted: {path}")
+            except:
+                print(f"⚠️ Could not delete: {path}")
+
+    # delete news files
     if os.path.exists(NEWS_DIR):
         for f in os.listdir(NEWS_DIR):
             if f.endswith("_news.json"):
-                os.remove(os.path.join(NEWS_DIR, f))
-                print("🗑️ Deleted:", f)
+                try:
+                    os.remove(os.path.join(NEWS_DIR, f))
+                    print(f"🗑️ Deleted: {f}")
+                except:
+                    print(f"⚠️ Could not delete: {f}")
 
     print("🧹 Cleanup complete.\n")
 
 
-def run_pipeline_once():
-    print("\n🚀 RUNNING FULL PIPELINE...\n")
+# -------------------------
+# RUN FULL PIPELINE
+# -------------------------
+def run_pipeline():
+    print("\n" + "="*70)
+    print(f"🚀 Pipeline started at {datetime.now()}")
+    print("="*70)
 
-    Crew(
+    # 1️⃣ TOOLCHAIN
+    print("\n📊 Step 1: Running Toolchain...")
+    crew1 = Crew(
         agents=[toolchain_agent],
         tasks=[toolchain_task],
+        verbose=True,
         process=Process.sequential
-    ).kickoff()
+    )
+    crew1.kickoff()
+    print("✔ Toolchain completed")
 
-    Crew(
+    # 2️⃣ CLEAN JSON
+    print("\n🧹 Step 2: Cleaning JSON...")
+    crew2 = Crew(
         agents=[json_cleaner_agent],
         tasks=[json_cleaner_task],
+        verbose=True,
         process=Process.sequential
-    ).kickoff()
+    )
+    crew2.kickoff()
+    print("✔ JSON cleaned")
 
-    Crew(
+    # 3️⃣ FETCH + PROCESS NEWS
+    print("\n📰 Step 3: Fetching + Injecting News...")
+    crew3 = Crew(
         agents=[news_agent],
         tasks=[news_task],
+        verbose=True,
         process=Process.sequential
-    ).kickoff()
+    )
+    crew3.kickoff()
+    print("✔ News processed")
 
-    Crew(
-        agents=[notifier_agent],
-        tasks=[notify_task],
-        process=Process.sequential
-    ).kickoff()
+    # 4️⃣ SEND TO DISCORD
+    print("\n📨 Step 4: Sending to Discord...")
+    notifier = DiscordNotifierTool()
+    notifier._run()
+    print("✔ Discord notification sent")
 
-    print("\n🎉 Pipeline completed successfully!\n")
+    # 5️⃣ CLEANUP FILES
+    print("\n🧹 Step 5: Cleanup...")
+    cleanup_all_pipeline_files()
+
+    print("\n" + "="*70)
+    print("🎉 Pipeline FINISHED SUCCESSFULLY.")
+    print("="*70)
 
 
 if __name__ == "__main__":
-    cleanup_files()       # Remove old files
-    run_pipeline_once()   # Run everything once
-    cleanup_files()       # Clean again after sending
+    run_pipeline()
