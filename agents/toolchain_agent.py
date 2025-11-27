@@ -21,7 +21,7 @@ toolchain_agent = Agent(
         YFinanceAnalysisTool(),
         StockClassifierTool(),
     ],
-    llm=gemma_llm,
+    llm=llama_llm,
     verbose=False,
     allow_delegation=False,
     max_tokens=1000
