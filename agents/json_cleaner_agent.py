@@ -1,10 +1,9 @@
 from crewai import Agent, LLM
 from tools.json_cleaner_tool import JSONCleanerTool
 
-# GPT Model with your API key
-gpt_llm = LLM(
-    model="llama3-8b-8192",
-    api_key="OPENAI_API_KEY",
+# Free Gemma model - NO API KEY NEEDED
+gemma_llm = LLM(
+    model="google/gemma-3-4b-it:free",
     base_url="https://openrouter.ai/api/v1",
     temperature=0.1
 )
@@ -14,7 +13,7 @@ json_cleaner_agent = Agent(
     goal="Clean malformed JSON files and save corrected versions",
     backstory="Specialized agent for sanitizing JSON output from other pipelines.",
     tools=[JSONCleanerTool()],
-    llm=gpt_llm,
+    llm=gemma_llm,
     verbose=False,
     allow_delegation=False,
     max_tokens=1000
