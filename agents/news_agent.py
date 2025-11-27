@@ -4,7 +4,7 @@ from tools.news_summarizer import NewsSummarizerTool
 
 # GPT Model with your API key
 gpt_llm = LLM(
-    model="openai/gpt-3.5-turbo",
+    model="openai/gpt-oss-20b",
     api_key="OPENAI_API_KEY",
     base_url="https://openrouter.ai/api/v1",
     temperature=0.1
