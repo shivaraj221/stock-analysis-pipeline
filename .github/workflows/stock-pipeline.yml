@@ -1,0 +1,30 @@
+name: 📊 Hourly Stock Pipeline
+
+on:
+  schedule:
+    - cron: "15 * * * *"   # Runs every hour at HH:15
+  workflow_dispatch:        # Manual trigger
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v3
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: 📦 Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 🚀 Run Pipeline
+        env:
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python main_fast.py
