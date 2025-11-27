@@ -1,11 +1,11 @@
-# agents/notifier_agent.py
 from crewai import Agent, LLM
 from tools.notifier import DiscordNotifierTool
 
-# FORCE OLLAMA — NO OPENAI EVER
-ollama_llm = LLM(
-    model="ollama/qwen2.5:7b-instruct",
-    base_url="http://localhost:11434",
+# GPT Model with your API key
+gpt_llm = LLM(
+    model="openai/gpt-3.5-turbo",
+    api_key="OPENAI_API_KEY",
+    base_url="https://openrouter.ai/api/v1",
     temperature=0.1
 )
 
@@ -14,7 +14,7 @@ notifier_agent = Agent(
     goal="Send beautiful classified stock alerts to Discord using ONLY the discord_notify_tool",
     backstory="You are the final step. You read classified_stocks.json and send rich embeds. Never write text yourself.",
     tools=[DiscordNotifierTool()],
-    llm=ollama_llm,           # THIS LINE KILLS THE OPENAI ERROR
+    llm=gpt_llm,
     verbose=False,
     allow_delegation=False,
     max_iter=1
