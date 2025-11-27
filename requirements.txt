@@ -1,5 +1,4 @@
 crewai
-groq
 yfinance
 requests
 beautifulsoup4
@@ -17,3 +16,4 @@ python-dateutil
 pytz
 tzdata
 playwright
+schedule
