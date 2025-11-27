@@ -3,7 +3,7 @@ from tools.notifier import DiscordNotifierTool
 
 # GPT Model with your API key
 gpt_llm = LLM(
-    model="google/gemma-3-4b-it:free",
+    model="llama3-8b-8192",
     api_key="OPENAI_API_KEY",
     base_url="https://openrouter.ai/api/v1",
     temperature=0.1
