@@ -1,9 +1,11 @@
 from crewai import Agent, LLM
 from tools.json_cleaner_tool import JSONCleanerTool
 
-ollama_llm = LLM(
-    model="ollama/qwen2.5:7b-instruct",
-    base_url="http://localhost:11434",
+# GPT Model with your API key
+gpt_llm = LLM(
+    model="openai/gpt-3.5-turbo",
+    api_key="OPENAI_API_KEY",
+    base_url="https://openrouter.ai/api/v1",
     temperature=0.1
 )
 
@@ -12,8 +14,8 @@ json_cleaner_agent = Agent(
     goal="Clean malformed JSON files and save corrected versions",
     backstory="Specialized agent for sanitizing JSON output from other pipelines.",
     tools=[JSONCleanerTool()],
-    llm=ollama_llm,
+    llm=gpt_llm,
     verbose=False,
     allow_delegation=False,
-    max_tokens=128
+    max_tokens=1000
 )
