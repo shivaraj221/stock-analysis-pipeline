@@ -18,16 +18,13 @@ from tasks.json_cleaner_task import json_cleaner_task
 from tasks.news_task import news_task
 from tasks.notifier_task import notify_task
 
-# Cleanup
-import shutil
-
 DATA_DIR = "data"
 NEWS_DIR = "data/news"
 
 def cleanup_files():
     print("\n🧹 Cleaning old JSON files...")
 
-    delete_list = [
+    to_delete = [
         "classified_stocks.json",
         "clean_classified_stocks.json",
         "new_classified_stocks.json",
@@ -35,14 +32,12 @@ def cleanup_files():
         "top_gainers.json"
     ]
 
-    deleted = 0
-
-    for filename in delete_list:
-        path = os.path.join(DATA_DIR, filename)
+    # Delete pipeline JSON files
+    for file in to_delete:
+        path = os.path.join(DATA_DIR, file)
         if os.path.exists(path):
             os.remove(path)
-            print("🗑️ Deleted:", filename)
-            deleted += 1
+            print("🗑️ Deleted:", file)
 
     # Delete all news files
     if os.path.exists(NEWS_DIR):
@@ -50,37 +45,31 @@ def cleanup_files():
             if f.endswith("_news.json"):
                 os.remove(os.path.join(NEWS_DIR, f))
                 print("🗑️ Deleted:", f)
-                deleted += 1
 
-    print("🧹 Cleanup complete.")
-    return deleted
+    print("🧹 Cleanup complete.\n")
 
 
-def run_pipeline():
-    print("\n🚀 Running FULL pipeline...\n")
+def run_pipeline_once():
+    print("\n🚀 RUNNING FULL PIPELINE...\n")
 
-    # 1) Scrape + Analyze + Classify
     Crew(
         agents=[toolchain_agent],
         tasks=[toolchain_task],
         process=Process.sequential
     ).kickoff()
 
-    # 2) Clean messy JSON
     Crew(
         agents=[json_cleaner_agent],
         tasks=[json_cleaner_task],
         process=Process.sequential
     ).kickoff()
 
-    # 3) Fetch news + build news_context
     Crew(
         agents=[news_agent],
         tasks=[news_task],
         process=Process.sequential
     ).kickoff()
 
-    # 4) Send report to Discord
     Crew(
         agents=[notifier_agent],
         tasks=[notify_task],
@@ -91,6 +80,6 @@ def run_pipeline():
 
 
 if __name__ == "__main__":
-    cleanup_files()     # Delete old JSONs
-    run_pipeline()      # Run full pipeline once
-    cleanup_files()     # Clean again after run
+    cleanup_files()       # Remove old files
+    run_pipeline_once()   # Run everything once
+    cleanup_files()       # Clean again after sending
