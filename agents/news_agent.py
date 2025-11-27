@@ -17,7 +17,7 @@ news_agent = Agent(
         NewsFetcherTool(),
         NewsSummarizerTool()
     ],
-    llm=gemma_llm,
+    llm=llama_llm,
     verbose=False,
     allow_delegation=False,
     max_tokens=1000
