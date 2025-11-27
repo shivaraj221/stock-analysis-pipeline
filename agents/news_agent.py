@@ -2,9 +2,11 @@ from crewai import Agent, LLM
 from tools.news_fetcher import NewsFetcherTool
 from tools.news_summarizer import NewsSummarizerTool
 
-ollama_llm = LLM(
-    model="ollama/qwen2.5:7b-instruct",
-    base_url="http://localhost:11434",
+# GPT Model with your API key
+gpt_llm = LLM(
+    model="openai/gpt-3.5-turbo",
+    api_key="OPENAI_API_KEY",
+    base_url="https://openrouter.ai/api/v1",
     temperature=0.1
 )
 
@@ -16,7 +18,8 @@ news_agent = Agent(
         NewsFetcherTool(),
         NewsSummarizerTool()
     ],
-    llm=ollama_llm,
+    llm=gpt_llm,
     verbose=False,
-    allow_delegation=False
+    allow_delegation=False,
+    max_tokens=1000
 )
