@@ -1,10 +1,10 @@
 from crewai import Agent, LLM
 from tools.json_cleaner_tool import JSONCleanerTool
 
-gemma_llm = LLM(
-    model="google/gemma-3-4b-it:free",
-    base_url="https://openrouter.ai/api/v1",
-    api_key="null",  # Free models don't need key, but CrewAI requires this field
+llama_llm = LLM(
+    model="meta-llama/llama-3.1-8b-instruct:free",
+    base_url="https://openrouter.ai/api/v1", 
+    api_key="null",
     temperature=0.1
 )
 
