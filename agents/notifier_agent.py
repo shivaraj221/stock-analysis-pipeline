@@ -5,6 +5,7 @@ from tools.notifier import DiscordNotifierTool
 gemma_llm = LLM(
     model="google/gemma-3-4b-it:free",
     base_url="https://openrouter.ai/api/v1",
+    api_key="null",  # Free models don't need key, but CrewAI requires this field
     temperature=0.1
 )
 
