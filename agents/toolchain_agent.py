@@ -3,12 +3,17 @@ from tools.trending_scraper import TrendingStocksTool
 from tools.yfinance_analyzer import YFinanceAnalysisTool
 from tools.classifier import StockClassifierTool
 
-# Free Gemma model - NO API KEY NEEDED
+# Try different free models - LiteLLM works better with some
 gemma_llm = LLM(
-    model="google/gemma-3-4b-it:free",
+    model="huggingface/google/gemma-3-4b-it:free",  # Different format
     base_url="https://openrouter.ai/api/v1",
     temperature=0.1
 )
+
+# Alternative models to try:
+# model="meta-llama/llama-3.1-8b-instruct:free"
+# model="microsoft/wizardlm-2-8x22b:free" 
+# model="qwen/qwen-2.5-7b-instruct:free"
 
 toolchain_agent = Agent(
     role="Full Pipeline Executor",
