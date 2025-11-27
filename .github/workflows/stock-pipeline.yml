@@ -23,7 +23,7 @@ jobs:
     
     - name: Run Stock Pipeline
       env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        # NO OPENAI_API_KEY needed for free model!
         NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
