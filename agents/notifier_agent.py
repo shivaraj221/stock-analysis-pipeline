@@ -1,5 +1,6 @@
 from crewai import Agent, LLM
 from tools.notifier import DiscordNotifierTool
+from llms.huggingface_llm import HuggingFaceLLM
 
 # Free Gemma model - NO API KEY NEEDED
 hf_llm = HuggingFaceLLM(
