@@ -1,169 +1,96 @@
 import os
-import json
+import schedule
+import time
 from datetime import datetime
 from crewai import Crew, Process
+from dotenv import load_dotenv
 
-# Agents
+# Load environment variables
+load_dotenv()
+
+# Import agents
 from agents.toolchain_agent import toolchain_agent
 from agents.json_cleaner_agent import json_cleaner_agent
 from agents.news_agent import news_agent
 
-# Tasks
+# Import tasks
 from tasks.toolchain_task import toolchain_task
 from tasks.json_cleaner_task import json_cleaner_task
 from tasks.news_task import news_task
 
-# Discord notifier
+# Import notifier
 from tools.notifier import DiscordNotifierTool
 
 
-# -------------------------
-# CLEANUP FUNCTION
-# -------------------------
-def cleanup_all_pipeline_files():
-    """Delete all JSON pipeline files after run."""
-    BASE = "data"
-    NEWS_DIR = os.path.join(BASE, "news")
+# -----------------------------------------------------------
+# RUN COMPLETE CREW PIPELINE (Stock → Clean → News)
+# -----------------------------------------------------------
+def run_crewai_pipeline():
+    print("\n🚀 Running CrewAI Stock Pipeline...")
 
-    general_files = [
-        "classified_stocks.json",
-        "clean_classified_stocks.json",
-        "new_classified_stocks.json",
-        "stock_analysis.json",
-        "top_gainers.json"
-    ]
+    full_crew = Crew(
+        agents=[
+            toolchain_agent,
+            json_cleaner_agent,
+            news_agent
+        ],
+        tasks=[
+            toolchain_task,
+            json_cleaner_task,
+            news_task
+        ],
+        process=Process.sequential,
+        verbose=False
+    )
 
-    print("\n🧹 Cleaning pipeline files...")
+    result = full_crew.kickoff()
 
-    # delete general files
-    for file in general_files:
-        path = os.path.join(BASE, file)
-        if os.path.exists(path):
-            try:
-                os.remove(path)
-                print(f"🗑️ Deleted: {path}")
-            except:
-                print(f"⚠️ Could not delete: {path}")
-
-    # delete news files
-    if os.path.exists(NEWS_DIR):
-        for f in os.listdir(NEWS_DIR):
-            if f.endswith("_news.json"):
-                try:
-                    os.remove(os.path.join(NEWS_DIR, f))
-                    print(f"🗑️ Deleted: {f}")
-                except:
-                    print(f"⚠️ Could not delete: {f}")
-
-    print("🧹 Cleanup complete.\n")
+    print("✅ Crew pipeline finished.")
+    return result
 
 
-# -------------------------
-# DATA VERIFICATION FUNCTION
-# -------------------------
-def verify_data_exists():
-    """Check if we have valid data before sending to Discord"""
-    clean_file = "data/clean_classified_stocks.json"
-    
-    if not os.path.exists(clean_file):
-        print("❌ clean_classified_stocks.json does not exist")
-        return False
-    
-    try:
-        with open(clean_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        # Check data structure
-        stocks = []
-        if isinstance(data, list):
-            stocks = data
-        elif isinstance(data, dict) and 'stocks' in data:
-            stocks = data['stocks']
-        else:
-            print(f"❌ Unexpected data format: {type(data)}")
-            return False
-        
-        if not stocks:
-            print("❌ No stocks found in the data")
-            return False
-        
-        print(f"✅ Data verified: {len(stocks)} stocks found")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error reading clean_classified_stocks.json: {e}")
-        return False
+# -----------------------------------------------------------
+# SINGLE EXECUTION WITH TIME CHECK
+# -----------------------------------------------------------
+def run_once():
+    now = datetime.now()
+    hour = now.hour
 
+    # Only run between 12 PM → 6 PM
+    if 12 <= hour <= 18:
+        print(f"\n⏱️ Executing scheduled run at {now.strftime('%I:%M %p')}")
 
-# -------------------------
-# RUN FULL PIPELINE
-# -------------------------
-def run_pipeline():
-    print("\n" + "="*70)
-    print(f"🚀 Pipeline started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("="*70)
+        final_output = run_crewai_pipeline()
 
-    try:
-        # 1️⃣ TOOLCHAIN
-        print("\n📊 Step 1: Running Toolchain...")
-        crew1 = Crew(
-            agents=[toolchain_agent],
-            tasks=[toolchain_task],
-            verbose=True,
-            process=Process.sequential
-        )
-        crew1.kickoff()
-        print("✔ Toolchain completed")
-
-        # 2️⃣ CLEAN JSON
-        print("\n🧹 Step 2: Cleaning JSON...")
-        crew2 = Crew(
-            agents=[json_cleaner_agent],
-            tasks=[json_cleaner_task],
-            verbose=True,
-            process=Process.sequential
-        )
-        crew2.kickoff()
-        print("✔ JSON cleaned")
-
-        # 3️⃣ FETCH + PROCESS NEWS
-        print("\n📰 Step 3: Fetching + Injecting News...")
-        crew3 = Crew(
-            agents=[news_agent],
-            tasks=[news_task],
-            verbose=True,
-            process=Process.sequential
-        )
-        crew3.kickoff()
-        print("✔ News processed")
-
-        # ✅ VERIFY DATA BEFORE DISCORD
-        print("\n🔍 Verifying data...")
-        if not verify_data_exists():
-            raise Exception("Data verification failed - no valid stocks found")
-
-        # 4️⃣ SEND TO DISCORD
-        print("\n📨 Step 4: Sending to Discord...")
+        # Send Discord notification
         notifier = DiscordNotifierTool()
-        notifier._run()
-        print("✔ Discord notification sent")
+        notifier.run(final_output)
 
-        # 5️⃣ CLEANUP FILES
-        print("\n🧹 Step 5: Cleanup...")
-        cleanup_all_pipeline_files()
-
-        print("\n" + "="*70)
-        print("🎉 Pipeline FINISHED SUCCESSFULLY.")
-        print("="*70)
-        return True
-
-    except Exception as e:
-        print(f"\n❌ Pipeline FAILED: {e}")
-        print("💡 Keeping files for debugging...")
-        return False
+        print("📨 Notification sent successfully!")
+    else:
+        print(f"⏳ Outside allowed window ({now.strftime('%I:%M %p')}) — skipping.")
 
 
+# -----------------------------------------------------------
+# MAIN SCHEDULER LOOP
+# -----------------------------------------------------------
+def main():
+    print("⏳ Scheduler started — Will run every hour between 12 PM and 6 PM.")
+
+    # Run immediately on startup
+    print("🚀 Running initial pipeline now...")
+    run_once()
+
+    # Schedule hourly
+    schedule.every().hour.do(run_once)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(60)  # Check once per minute
+
+
+# -----------------------------------------------------------
+# ENTRY POINT
+# -----------------------------------------------------------
 if __name__ == "__main__":
-    # Simple one-time execution for GitHub Actions
-    success = run_pipeline()
-    exit(0 if success else 1)
+    main()
