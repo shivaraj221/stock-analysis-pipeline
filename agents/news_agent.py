@@ -1,6 +1,8 @@
 from crewai import Agent, LLM
 from tools.news_fetcher import NewsFetcherTool
 from tools.news_summarizer import NewsSummarizerTool
+from llms.huggingface_llm import HuggingFaceLLM
+
 
 # Free Gemma model - NO API KEY NEEDED
 hf_llm = HuggingFaceLLM(
