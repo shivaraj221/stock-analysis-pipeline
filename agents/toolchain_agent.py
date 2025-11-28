@@ -5,10 +5,8 @@ from tools.classifier import StockClassifierTool
 import os
 
 # Use OpenRouter with OpenAI-compatible endpoint
-llama_llm = LLM(
-    model="meta-llama/llama-3.1-8b-instruct:free",
-    base_url="https://openrouter.ai/api/v1", 
-    api_key="null",
+hf_llm = HuggingFaceLLM(
+    model="moonshotai/Kimi-K2-Thinking:novita",
     temperature=0.1
 )
 
@@ -21,7 +19,7 @@ toolchain_agent = Agent(
         YFinanceAnalysisTool(),
         StockClassifierTool(),
     ],
-    llm=llama_llm,
+    llm=hf_llm,
     verbose=False,
     allow_delegation=False,
     max_tokens=1000
