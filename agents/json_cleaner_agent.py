@@ -1,6 +1,6 @@
 from crewai import Agent, LLM
 from tools.json_cleaner_tool import JSONCleanerTool
-from llms.huggingface_llm import HuggingFaceLLM
+from llm.huggingface_llm import HuggingFaceLLM
 
 
 hf_llm = HuggingFaceLLM(
