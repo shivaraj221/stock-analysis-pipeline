@@ -1,6 +1,7 @@
 from crewai import Agent, LLM
 from tools.trending_scraper import TrendingStocksTool
 from tools.yfinance_analyzer import YFinanceAnalysisTool
+from llms.huggingface_llm import HuggingFaceLLM
 from tools.classifier import StockClassifierTool
 import os
 
