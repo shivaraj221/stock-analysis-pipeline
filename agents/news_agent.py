@@ -3,10 +3,8 @@ from tools.news_fetcher import NewsFetcherTool
 from tools.news_summarizer import NewsSummarizerTool
 
 # Free Gemma model - NO API KEY NEEDED
-llama_llm = LLM(
-    model="meta-llama/llama-3.1-8b-instruct:free",
-    base_url="https://openrouter.ai/api/v1", 
-    api_key="null",
+hf_llm = HuggingFaceLLM(
+    model="moonshotai/Kimi-K2-Thinking:novita",
     temperature=0.1
 )
 news_agent = Agent(
@@ -17,7 +15,7 @@ news_agent = Agent(
         NewsFetcherTool(),
         NewsSummarizerTool()
     ],
-    llm=llama_llm,
+    llm=hf_llm,
     verbose=False,
     allow_delegation=False,
     max_tokens=1000
